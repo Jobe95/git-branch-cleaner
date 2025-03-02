@@ -41,6 +41,13 @@ func getCurrentBranch() (string, error) {
 	return strings.TrimSpace(out.String()), nil
 }
 
+func deleteBranch(branch string) error {
+	cmd := exec.Command("git", "branch", "-D", branch)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 func main() {
 	branches, err := getBranches()
 
@@ -85,7 +92,12 @@ func main() {
 	}
 
 	for _, branch := range selectedBranches {
-		fmt.Printf("Deleting %s...\n", branch)
+		err := deleteBranch(branch)
+		if err != nil {
+			fmt.Printf("Failed to delete %s: %v\n", branch, err)
+		} else {
+			fmt.Printf("Deleted %s\n", branch)
+		}
 	}
 
 	fmt.Println("Done.")
