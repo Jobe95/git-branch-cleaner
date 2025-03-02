@@ -28,6 +28,17 @@ func getBranches() ([]string, error) {
 	return cleaned, nil
 }
 
+func getCurrentBranch() (string, error) {
+	cmd := exec.Command("git", "branch", "--show-current")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(out.String()), nil
+}
+
 func main() {
 	branches, err := getBranches()
 
@@ -36,5 +47,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(branches)
+	currentBranch, err := getCurrentBranch()
+	if err != nil {
+		fmt.Println("Error fetching current branch:", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Local Git branches:")
+	for _, branch := range branches {
+		if branch == currentBranch {
+			fmt.Printf("  * %s (active)\n", branch)
+		} else {
+			fmt.Printf("  - %s\n", branch)
+		}
+	}
 }
