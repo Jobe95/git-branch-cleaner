@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
 )
 
 func getBranches() ([]string, error) {
@@ -53,12 +55,38 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Local Git branches:")
+	deletableBranches := []string{}
 	for _, branch := range branches {
-		if branch == currentBranch {
-			fmt.Printf("  * %s (active)\n", branch)
-		} else {
-			fmt.Printf("  - %s\n", branch)
+		if branch != currentBranch {
+			deletableBranches = append(deletableBranches, branch)
 		}
 	}
+
+	if len(deletableBranches) == 0 {
+		fmt.Println("No branches to delete.")
+		return
+	}
+
+	var selectedBranches []string
+	prompt := &survey.MultiSelect{
+		Message: "Select branches to delete:",
+		Options: deletableBranches,
+	}
+
+	err = survey.AskOne(prompt, &selectedBranches)
+	if err != nil {
+		fmt.Println("Cancelled")
+		return
+	}
+
+	if len(selectedBranches) == 0 {
+		fmt.Println("No branches selected.")
+		return
+	}
+
+	for _, branch := range selectedBranches {
+		fmt.Printf("Deleting %s...\n", branch)
+	}
+
+	fmt.Println("Done.")
 }
